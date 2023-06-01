@@ -1,3 +1,5 @@
+const fs = require ('fs')
+
 class Product {
     constructor(id, title, description, price, thumbnail, code, stock) {
       this.id = id;
@@ -11,16 +13,21 @@ class Product {
   }
 
 class ProductManager{
-    constructor(){
-        this.products=[]
+    constructor(path){
+        this.path=path;
     }
 
-    getProducts=()=>{
-        return this.products;
+    async getProducts(){
+      if (fs.existsSync(this.path)) {
+        let data = await fs.promises.readFile(this.path, "utf-8");
+        return JSON.parse(data);
+      } else {
+        return [];
+      }
     }
 
-    addProduct(title, description, price, thumbnail, code, stock) {
-        let products = this.getProducts();
+    async addProduct(title, description, price, thumbnail, code, stock) {
+        let products = await this.getProducts();
         let productExists = products.findIndex((product) => product.code === code) !== -1;
         let aFieldIsEmpty = !(title && description && price && thumbnail && code && stock); //un campo en false, también es un campo vacío 
         if (productExists || aFieldIsEmpty) { //si se cumple alguna de estas condiciones hay un error
@@ -29,11 +36,14 @@ class ProductManager{
             let id = products.length + 1;
             let newProduct = new Product(id, title, description, price, thumbnail, code, stock);
             products.push(newProduct);
+            await fs.promises.writeFile(this.path, JSON.stringify(products,null,2));
             console.log(`Product ${title} added with ID ${id}`);
         }
       }
 
-getProductById=(idProduct)=>{
+async getProductById(idProduct){
+
+    let products = await this.getProducts();
     let productIndex = products.findIndex((product) => product.id === idProduct);
     /*
     *La función utiliza el método findIndex en el array products para encontrar 
@@ -71,9 +81,47 @@ getProductById=(idProduct)=>{
     un mensaje de "Product not found" en la consola.
     */
 }
+
+async updateProduct(id, title, description, price, thumbnail, code, stock) {
+  let products = await this.getProducts();
+  let productIndex = products.findIndex((product) => product.id === id);
+  let productExists = productIndex !== -1;
+  if (productExists) {
+    products[productIndex].title = title;
+    products[productIndex].description = description;
+    products[productIndex].price = price;
+    products[productIndex].thumbnail = thumbnail;
+    products[productIndex].code = code;
+    products[productIndex].stock = stock;
+    await fs.promises.writeFile(this.path, JSON.stringify(products,null,2));
+    console.log(`Product ${title} with ID ${id} updated successfully`);
+  } else {
+    console.log("Product not found.");
+  }
 }
 
-const manejadorProducts = new ProductManager();
+async deleteProduct(id) {
+  let products = await this.getProducts();
+  let productIndex = products.findIndex((product) => product.id === id);
+  let productExists = productIndex !== -1;
+  if (productExists) {
+    products[productIndex] = {};
+    await fs.promises.writeFile(this.path, JSON.stringify(products,null,2));
+    console.log(`Product with ID ${id} deleted successfully`);
+  } else {
+    console.log("Product not found.");
+  }
+}
+}
 
-manejadorProducts.addProduct('producto prueba', 'Este es un producto prueba', 200, 'Sin imagen','abc123', 25)
-console.log(manejadorProducts.getProducts)
+
+
+let pm = new ProductManager("./files/products.json");
+
+pm.addProduct("producto prueba", "Este es un producto prueba", 200, "Sin imagen", "abc123", 25);
+//pm.getProducts().then(products => console.log(products));
+//pm.getProductById(1).then(product => console.log(product));
+//pm.updateProduct(1, "producto prueba update", "Este es un producto prueba update", 300, "Sin imagen update", "abc123 update", 45);
+//pm.deleteProduct(1);
+
+
