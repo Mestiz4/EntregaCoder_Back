@@ -1,4 +1,4 @@
-const fs = require ('fs')
+import fs from "fs";
 
 class Product {
     constructor(id, title, description, price, thumbnail, code, stock) {
@@ -12,7 +12,7 @@ class Product {
     }
   }
 
-class ProductManager{
+  export default class ProductManager{
     constructor(path){
         this.path=path;
     }
@@ -116,9 +116,10 @@ async deleteProduct(id) {
 
 
 
-let pm = new ProductManager("./files/products.json");
+//let pm = new ProductManager("./files/products.json");
 
-pm.addProduct("producto prueba", "Este es un producto prueba", 200, "Sin imagen", "abc123", 25);
+
+//pm.addProduct("producto prueba", "Este es un producto prueba", 200, "Sin imagen", "abc123", 25);
 //pm.getProducts().then(products => console.log(products));
 //pm.getProductById(1).then(product => console.log(product));
 //pm.updateProduct(1, "producto prueba update", "Este es un producto prueba update", 300, "Sin imagen update", "abc123 update", 45);
